@@ -70,17 +70,69 @@ function getAllPagesOfACate (cateURL,callback) {
 	} );
 }
 
-request (temp, function (err,res,html) {
-	var $ = cheerio.load(html);
-	var list = [];
-	$('#selectedgenre .paginate')[0];
-	var a = $(this);
-	console.log(a.attr('href'));
-	a.find('li a').attr('href');
-	console.log(a);
-});
+function getAllAppURL (baseLetterURL,callback) {
+	request (baseLetterURL, function (err,res,html) {
+		var $ = cheerio.load(html); 
+		var baseURL = res.request.href;
+		var curPage = 1;
+		var appList = [];
+		var isReachEnd = false;
+		var a = $('#selectedgenre .paginate')[0];
 
+		// $(a).find('li a').each(function () {
+		//     console.log($(this).attr('href'));
+		// })
 
+		debugger;
+		console.log('start async');
+		async.doWhilst ( function (innerCallback) {
+			var pageURL = baseLetterURL + '?page=' + curPage + '#page';
+
+			console.log('start with ' + pageURL);
+
+			getAllAppURLInAPage (pageURL, function (err, appURLs ){
+				curPage++;
+				var b;
+				appList = appList.concat(appURLs);
+				$(a).find('li .paginate-more').each(function () {
+					b = $(this).attr('href');
+				})
+				console.log(b);
+				if (b = 'undefined') {
+					console.log('reached end');
+					isReachEnd = true;
+				};
+				return innerCallback(err);
+			})
+
+		}, function () {
+			console.log('keep going');
+			return !isReachEnd;
+		}, function (err) {
+			console.log('in the URL ' + baseURL);
+			console.log('get success ' + appList.length + ' urls');
+			return callback(err,appList);
+		})
+		printArray(appList);
+	})
+
+}
+
+function getAllAppURLInAPage(pageURL,callback) {
+	request(pageURL,function (err,res,html) {
+		var $ = cheerio.load(html);
+		var appURLs = [];
+		$('#selectedcontent a').each(function() {
+			var appURL = $(this).attr('href');
+			appURLs.push(appURL);
+		})
+
+		return callback(err,appURLs);
+	})
+}
+var appList = [];
+
+getAllAppURL(temp,appList);
 
 //get all 
 
